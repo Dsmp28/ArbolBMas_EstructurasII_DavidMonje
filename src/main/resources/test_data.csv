@@ -1,0 +1,10 @@
+INSERT; {"isbn":"1234567890","nombre":"Cien Años de Soledad","autor":"Gabriel Garcia Marquez","categoria":"Ficción","precio":"20.00","cantidad":"10"}
+INSERT; {""isbn"":""0987654321"",""nombre"":""El Principito"",""autor"":""Antoine de Saint-Exupéry"",""categoria"":""Ficción"",""precio"":""15.00"",""cantidad"":""5""}"
+PATCH; {""isbn"":""0987654321"",""autor"":""Antoine de Saint-Exupéry"",""precio"":""18.00""}"
+DELETE; {""isbn"":""1234567890""}"
+SEARCH; {""isbn"":""1234567890""}"
+INSERT; {""isbn"":""1122334455"",""nombre"":""Don Quijote de la Mancha"",""autor"":""Miguel de Cervantes"",""categoria"":""Clásicos"",""precio"":""25.00"",""cantidad"":""7""}"
+INSERT; {""isbn"":""2233445566"",""nombre"":""Moby Dick"",""autor"":""Herman Melville"",""categoria"":""Aventura"",""precio"":""22.00"",""cantidad"":""3""}"
+PATCH; {""isbn"":""1122334455"",""cantidad"":""10""}"
+DELETE; {""isbn"":""2233445566""}"
+SEARCH; {""isbn"":""1122334455""}"
