@@ -4,29 +4,37 @@ import java.io.*;
 import java.util.*;
 
 public class ArbolBMas {
-    int m;
-    NodoInterno raiz;
-    NodoHoja primerHoja;
+    int m; //Grado del arbol
+    NodoInterno raiz; //Nodo raiz del arbol
+    NodoHoja primerHoja; //Primera hoja del arbol
 
+    //Constructor
     public ArbolBMas(int m) {
         this.m = m;
         this.raiz = null;
     }
 
     public void insertar(String clave, Libro valor) {
+        // Verificar si el árbol está vacío
         if (estaVacio()) {
-            NodoHoja hoja = new NodoHoja(this.m, new ParDiccionario(clave, valor));
-            this.primerHoja = hoja;
+            // Si está vacío, crear la primera hoja con el par clave-valor
+            this.primerHoja = new NodoHoja(this.m, new ParDiccionario(clave, valor));
         } else {
+            // Encontrar la hoja adecuada para insertar la nueva clave-valor
             NodoHoja hoja = (this.raiz == null) ? this.primerHoja : encontrarNodoHoja(clave);
+
+            // Intentar insertar el nuevo par clave-valor en la hoja
             if (!hoja.insertar(new ParDiccionario(clave, valor))) {
+                // Si la hoja está llena, agregar el nuevo par al final y ordenar
                 hoja.diccionario[hoja.numPares] = new ParDiccionario(clave, valor);
                 hoja.numPares++;
                 ordenarDiccionario(hoja.diccionario);
 
+                // Dividir la hoja en dos si está llena
                 int puntoMedio = obtenerPuntoMedio();
                 ParDiccionario[] mitadDiccionario = dividirDiccionario(hoja, puntoMedio);
 
+                // Si la hoja no tiene padre, crear un nuevo nodo interno como padre
                 if (hoja.padre == null) {
                     String[] clavesPadre = new String[this.m];
                     clavesPadre[0] = mitadDiccionario[0].clave;
@@ -34,15 +42,18 @@ public class ArbolBMas {
                     hoja.padre = padre;
                     padre.anadirPunteroHijo(hoja);
                 } else {
+                    // Actualizar las claves del padre con la nueva clave
                     String nuevaClavePadre = mitadDiccionario[0].clave;
                     hoja.padre.claves[hoja.padre.getPunteros() - 1] = nuevaClavePadre;
                     Arrays.sort(hoja.padre.claves, 0, hoja.padre.getPunteros());
                 }
 
+                // Crear una nueva hoja con la mitad del diccionario dividido
                 NodoHoja nuevaHoja = new NodoHoja(this.m, mitadDiccionario, hoja.padre);
                 int indicePuntero = hoja.padre.encontrarIndiceDePuntero(hoja) + 1;
                 hoja.padre.insertarPunteroHijo(nuevaHoja, indicePuntero);
 
+                // Actualizar los enlaces de los hermanos
                 nuevaHoja.hermanoDerecho = hoja.hermanoDerecho;
                 if (nuevaHoja.hermanoDerecho != null) {
                     nuevaHoja.hermanoDerecho.hermanoIzquierdo = nuevaHoja;
@@ -50,9 +61,11 @@ public class ArbolBMas {
                 hoja.hermanoDerecho = nuevaHoja;
                 nuevaHoja.hermanoIzquierdo = hoja;
 
+                // Si la raíz es nula, establecer el nuevo padre como la raíz
                 if (this.raiz == null) {
                     this.raiz = hoja.padre;
                 } else {
+                    // Manejar la actualización de la raíz si es necesario
                     NodoInterno nodoInterno = hoja.padre;
                     while (nodoInterno != null) {
                         if (nodoInterno.estaLleno()) {
@@ -68,25 +81,33 @@ public class ArbolBMas {
     }
 
     public void eliminar(String clave) {
+        // Verificar si el árbol está vacío
         if (estaVacio()) {
             System.err.println("Eliminación Inválida: El árbol B+ está actualmente vacío.");
         } else {
+            // Encontrar la hoja que contiene la clave a eliminar
             NodoHoja hoja = (this.raiz == null) ? this.primerHoja : encontrarNodoHoja(clave);
+            // Buscar el índice del par clave-valor en la hoja
             int indicePar = busquedaBinaria(hoja.diccionario, hoja.numPares, clave);
 
+            // Si la clave no se encuentra en la hoja, imprimir un mensaje de error
             if (indicePar < 0) {
                 System.err.println("Eliminación Inválida: No se pudo encontrar la clave.");
             } else {
+                // Eliminar el par clave-valor de la hoja y reordenar
                 hoja.eliminar(indicePar);
                 hoja.reordenar();
 
+                // Obtener el nodo interno padre de la hoja
                 NodoInterno nodoInterno = hoja.padre;
+
+                // Si el nodo interno contiene la clave eliminada, actualizar la clave en el nodo interno
                 if (nodoInterno != null && nodoInterno.contieneClave(clave)) {
                     int indiceClave = Arrays.asList(nodoInterno.claves).indexOf(clave);
                     nodoInterno.claves[indiceClave] = hoja.diccionario[0].clave;
                 }
 
-                // Validación para ajustar la raíz si la clave eliminada era una clave de la raíz
+                // Si la raíz contiene la clave eliminada, actualizar la clave en la raíz
                 if (this.raiz != null && Arrays.asList(this.raiz.claves).contains(clave)) {
                     int indiceRaiz = Arrays.asList(this.raiz.claves).indexOf(clave);
 
@@ -108,6 +129,7 @@ public class ArbolBMas {
                 } else if (this.raiz == null && this.primerHoja.numPares == 0) {
                     this.primerHoja = null;
                 } else {
+                    //Manejar deficiencia de los nodos internos si es necesario
                     hoja.reordenar();
                     ordenarDiccionario(hoja.diccionario);
                     if (hoja.padre != null) {
@@ -129,20 +151,28 @@ public class ArbolBMas {
 
 
     public Libro buscar(String clave) {
+        //Validar si esta vacio
         if (estaVacio()) {
             return null;
         }
 
+        //Encontrar la hoja que contiene la clave
         NodoHoja hoja = (this.raiz == null) ? this.primerHoja : encontrarNodoHoja(clave);
+
+        //Buscar el indice del par clave-valor en la hoja
         ParDiccionario[] dps = hoja.diccionario;
         int indice = busquedaBinaria(dps, hoja.numPares, clave);
 
+        //Retornar el valor si se encuentra, de lo contrario, retornar nulo
         if (indice < 0) {
             return null;
         } else {
             return dps[indice].valor;
         }
     }
+
+    //Busqueda lineal en las hojas para encontrar un libro por su nombre
+    //Se crea una lista con todos los resultados
     public List<Libro> buscarPorNombre(String nombre) {
         List<Libro> resultados = new ArrayList<>();
         NodoHoja hojaActual = this.primerHoja;
@@ -159,9 +189,12 @@ public class ArbolBMas {
         return resultados;
     }
 
-
+    //Actualiza los valores del nodo selecionado
     public void actualizar(String clave, Map<String, String> actualizaciones) {
+        //Busca el libro usando la clave
         Libro libro = buscar(clave);
+
+        //Si el libro no es nulo, actualiza los valores
         if (libro != null) {
             if (actualizaciones.containsKey("nombre")) libro.setNombre(actualizaciones.get("nombre"));
             if (actualizaciones.containsKey("autor")) libro.setAutor(actualizaciones.get("autor"));
@@ -171,16 +204,22 @@ public class ArbolBMas {
         }
     }
 
+    // Procesa un archivo CSV que contiene comandos como INSERT, DELETE, PATCH y SEARCH
     public void procesarCsv(String nombreArchivo) {
         try (BufferedReader br = new BufferedReader(new FileReader(nombreArchivo))) {
             String linea;
+            // Leer cada línea del archivo CSV
             while ((linea = br.readLine()) != null) {
                 linea = linea.trim();
+                // Procesar la línea según el comando (INSERT, DELETE, PATCH, SEARCH)
+
                 if (linea.startsWith("INSERT")) {
+                    // Parsear el JSON y crear un objeto Libro
                     String json = linea.substring(linea.indexOf("{"));
                     Libro libro = parsearLibroJson(json);
+                    // Insertar el libro en el árbol B+
                     insertar(libro.getIsbn(), libro);
-                } else if (linea.startsWith("DELETE")) {
+                } else if (linea.startsWith("DELETE")) { //Mismo proceso para todas las funciones
                     String json = linea.substring(linea.indexOf("{"));
                     Map<String, String> datos = parsearJson(json);
                     eliminar(datos.get("isbn"));
@@ -193,11 +232,12 @@ public class ArbolBMas {
                     String json = linea.substring(linea.indexOf("{"));
                     Map<String, String> datos = parsearJson(json);
                     List<Libro> resultado = buscarPorNombre(datos.get("nombre"));
+                    // Imprimir los resultados de la búsqueda
                     if (resultado != null) {
                         System.out.println();
                         System.out.println("Encontrado: ");
                         for (Libro libro : resultado) {
-                            System.out.println(libro.nombre);
+                            System.out.println(libro);
                         }
                     } else {
                         System.out.println("No Encontrado");
@@ -209,6 +249,7 @@ public class ArbolBMas {
         }
     }
 
+    //Parsea el JSON y crea un objeto Libro
     private Libro parsearLibroJson(String json) {
         Map<String, String> datos = parsearJson(json);
         return new Libro(
@@ -221,10 +262,14 @@ public class ArbolBMas {
         );
     }
 
+    //Parsea el JSON y crea un mapa de clave-valor
     private Map<String, String> parsearJson(String json) {
+        // Eliminar los caracteres no deseados del JSON
         json = json.replaceAll("[{}\"]", "");
+        // Separar los pares clave-valor
         String[] pares = json.split(",");
         Map<String, String> mapa = new HashMap<>();
+        // Crear un mapa con los pares clave-valor
         for (String par : pares) {
             String[] claveValor = par.split(":");
             mapa.put(claveValor[0].trim(), claveValor[1].trim());
@@ -232,6 +277,7 @@ public class ArbolBMas {
         return mapa;
     }
 
+    // Encontrar el nodo hoja que debe contener la clave
     private NodoHoja encontrarNodoHoja(String clave) {
         if (this.raiz == null) {
             return this.primerHoja;
@@ -240,6 +286,7 @@ public class ArbolBMas {
         String[] claves = this.raiz.claves;
         int i;
 
+        // Recorrer las claves del nodo raíz para encontrar el puntero correcto
         for (i = 0; i < this.raiz.getPunteros() - 1; i++) {
             if (clave.compareTo(claves[i]) < 0) {
                 break;
@@ -254,10 +301,12 @@ public class ArbolBMas {
         }
     }
 
+    // Encontrar el nodo hoja a partir de un nodo interno específico
     private NodoHoja encontrarNodoHoja(NodoInterno nodo, String clave) {
         String[] claves = nodo.claves;
         int i;
 
+        // Recorrer las claves del nodo interno para encontrar el puntero correcto
         for (i = 0; i < nodo.getPunteros() - 1; i++) {
             if (clave.compareTo(claves[i]) < 0) {
                 break;
@@ -272,46 +321,45 @@ public class ArbolBMas {
         }
     }
 
+    // Realiza una búsqueda binaria en un array de pares clave-valor
     private int busquedaBinaria(ParDiccionario[] dps, int numPares, String clave) {
-        Comparator<ParDiccionario> c = new Comparator<ParDiccionario>() {
-            @Override
-            public int compare(ParDiccionario o1, ParDiccionario o2) {
-                return o1.clave.compareTo(o2.clave);
-            }
-        };
+        Comparator<ParDiccionario> c;
+        c = Comparator.comparing(o -> o.clave);
         return Arrays.binarySearch(dps, 0, numPares, new ParDiccionario(clave, null), c);
     }
 
+    // Verifica si el árbol está vacío
     private boolean estaVacio() {
         return primerHoja == null;
     }
 
+    // Obtiene el punto medio para dividir nodos o diccionarios
     private int obtenerPuntoMedio() {
         return (int) Math.ceil((this.m + 1) / 2.0) - 1;
     }
 
+    // Ordena el diccionario de pares clave-valor en una hoja
     private void ordenarDiccionario(ParDiccionario[] diccionario) {
-        Arrays.sort(diccionario, new Comparator<ParDiccionario>() {
-            @Override
-            public int compare(ParDiccionario o1, ParDiccionario o2) {
-                if (o1 == null && o2 == null) {
-                    return 0;
-                }
-                if (o1 == null) {
-                    return 1;
-                }
-                if (o2 == null) {
-                    return -1;
-                }
-                return o1.compareTo(o2);
+        Arrays.sort(diccionario, (o1, o2) -> {
+            if (o1 == null && o2 == null) {
+                return 0;
             }
+            if (o1 == null) {
+                return 1;
+            }
+            if (o2 == null) {
+                return -1;
+            }
+            return o1.compareTo(o2);
         });
     }
 
+    // Divide el diccionario de una hoja en dos partes
     private ParDiccionario[] dividirDiccionario(NodoHoja hoja, int puntoMedio) {
         ParDiccionario[] diccionario = hoja.diccionario;
         ParDiccionario[] mitadDiccionario = new ParDiccionario[this.m];
 
+        // Mover la segunda mitad del diccionario a un nuevo array
         for (int i = puntoMedio; i < diccionario.length; i++) {
             mitadDiccionario[i - puntoMedio] = diccionario[i];
             hoja.eliminar(i);
@@ -320,6 +368,7 @@ public class ArbolBMas {
         return mitadDiccionario;
     }
 
+    // Divide un nodo interno en dos nodos internos
     private void dividirNodoInterno(NodoInterno nodo) {
         NodoInterno padre = nodo.padre;
 
@@ -344,6 +393,7 @@ public class ArbolBMas {
         nodo.hermanoDerecho = hermano;
         hermano.hermanoIzquierdo = nodo;
 
+        // Si no hay padre, se crea una nueva raíz
         if (padre == null) {
             String[] claves = new String[this.m];
             claves[0] = nuevaClavePadre;
@@ -356,6 +406,7 @@ public class ArbolBMas {
             hermano.padre = nuevaRaiz;
 
         } else {
+            // Se añade la nueva clave al padre y se inserta el puntero al nuevo nodo
             padre.claves[padre.getPunteros() - 1] = nuevaClavePadre;
             Arrays.sort(padre.claves, 0, padre.getPunteros());
 
@@ -365,10 +416,12 @@ public class ArbolBMas {
         }
     }
 
+    // Divide un array de claves en dos partes
     private String[] dividirClaves(String[] claves, int puntoMedio) {
         String[] mitadClaves = new String[this.m];
         claves[puntoMedio] = null;
 
+        // Mover la segunda mitad de las claves a un nuevo array
         for (int i = puntoMedio + 1; i < claves.length; i++) {
             mitadClaves[i - puntoMedio - 1] = claves[i];
             claves[i] = null;
@@ -377,10 +430,12 @@ public class ArbolBMas {
         return mitadClaves;
     }
 
+    // Divide un array de punteros hijos en dos partes
     private Nodo[] dividirPunterosHijos(NodoInterno nodo, int puntoMedio) {
         Nodo[] punteros = nodo.punterosHijos;
         Nodo[] mitadPunteros = new Nodo[this.m + 1];
 
+        // Mover la segunda mitad de los punteros hijos a un nuevo array
         for (int i = puntoMedio + 1; i < punteros.length; i++) {
             mitadPunteros[i - puntoMedio - 1] = punteros[i];
             nodo.eliminarPuntero(i);
@@ -389,6 +444,7 @@ public class ArbolBMas {
         return mitadPunteros;
     }
 
+    // Encuentra el primer índice nulo en un array de punteros
     private int busquedaLinealNula(Nodo[] punteros) {
         for (int i = 0; i < punteros.length; i++) {
             if (punteros[i] == null) {
@@ -398,6 +454,7 @@ public class ArbolBMas {
         return -1;
     }
 
+    // Maneja la deficiencia en una hoja
     private void manejarDeficiencia(NodoHoja hoja) {
         NodoHoja hermanoIzquierdo = hoja.hermanoIzquierdo;
         NodoHoja hermanoDerecho = hoja.hermanoDerecho;
@@ -441,7 +498,7 @@ public class ArbolBMas {
     }
 
 
-
+    // Redistribuir elementos desde el hermano izquierdo hacia una hoja deficiente
     private void redistribuirDesdeIzquierdo(NodoHoja hoja, NodoHoja hermanoIzquierdo) {
         // Mover la última clave del hermano izquierdo al nodo hoja deficiente
         for (int i = hoja.numPares - 1; i >= 0; i--) {
@@ -456,6 +513,7 @@ public class ArbolBMas {
         hoja.padre.claves[indiceEnPadre - 1] = hoja.diccionario[0].clave;
     }
 
+    // Redistribuir elementos desde el hermano derecho hacia una hoja deficiente
     private void redistribuirDesdeDerecho(NodoHoja hoja, NodoHoja hermanoDerecho) {
         // Mover la primera clave del hermano derecho al nodo hoja deficiente
         hoja.diccionario[hoja.numPares] = hermanoDerecho.diccionario[0];
@@ -470,6 +528,7 @@ public class ArbolBMas {
         hoja.padre.claves[indiceEnPadre - 1] = hermanoDerecho.diccionario[0].clave;
     }
 
+    // Fusionar dos hojas cuando una de ellas es deficiente
     private void fusionarHojas(NodoHoja hoja, NodoHoja hermano) {
         // Fusionar todas las claves del nodo deficiente en el nodo hermano
         for (int i = 0; i < hoja.numPares; i++) {
@@ -499,8 +558,7 @@ public class ArbolBMas {
         }
     }
 
-
-
+    // Maneja la deficiencia en un nodo interno
     private void manejarDeficiencia(NodoInterno nodo) {
         NodoInterno hermanoIzquierdo = nodo.hermanoIzquierdo;
         NodoInterno hermanoDerecho = nodo.hermanoDerecho;
@@ -533,7 +591,7 @@ public class ArbolBMas {
     }
 
 
-
+    // Redistribuir elementos desde el hermano izquierdo hacia un nodo interno deficiente
     private void redistribuirDesdeIzquierdoInterno(NodoInterno nodo, NodoInterno hermanoIzquierdo) {
         // Mover la clave más grande del hermano izquierdo al nodo
         for (int i = nodo.getPunteros() - 1; i >= 0; i--) {
@@ -556,7 +614,7 @@ public class ArbolBMas {
         hermanoIzquierdo.punterosHijos[hermanoIzquierdo.getPunteros() - 1] = null;
         hermanoIzquierdo.reordenarClaves();
 
-        // Si se eliminó la última clave del hermano izquierdo, unir el puntero al hermano derecho
+        //Sí se eliminó la última clave del hermano izquierdo, unir el puntero al hermano derecho
         if (hermanoIzquierdo.getClavesActuales() == 0) {
             NodoInterno hermanoDerecho = nodo.hermanoDerecho;
             if (hermanoDerecho != null) {
@@ -569,9 +627,7 @@ public class ArbolBMas {
         }
     }
 
-
-
-
+    // Redistribuir elementos desde el hermano derecho hacia un nodo interno deficiente
     private void redistribuirDesdeDerechoInterno(NodoInterno nodo, NodoInterno hermanoDerecho) {
         int indicePadre = nodo.padre.encontrarIndiceDePuntero(nodo);
         nodo.claves[nodo.getPunteros()] = nodo.padre.claves[indicePadre];
@@ -591,8 +647,7 @@ public class ArbolBMas {
         hermanoDerecho.reordenarPunteros();
     }
 
-
-
+    // Fusionar dos nodos internos cuando uno de ellos es deficiente
     private void fusionarNodosInternos(NodoInterno nodo, NodoInterno hermano) {
         int indicePadre = nodo.padre.encontrarIndiceDePuntero(nodo);
 
@@ -636,7 +691,7 @@ public class ArbolBMas {
         }
     }
 
-
+    // Fusionar un nodo interno con su padre cuando no hay hermanos disponibles
     private void fusionarConPadre(NodoInterno nodo) {
         NodoInterno padre = nodo.padre;
         int indicePuntero = padre.encontrarIndiceDePuntero(nodo);
@@ -657,6 +712,7 @@ public class ArbolBMas {
         }
     }
 
+    // Elimina el puntero de un nodo padre que apuntaba a un nodo hijo que se ha fusionado
     private void eliminarPunteroDePadre(Nodo nodo) {
         NodoInterno padre = nodo.padre;
         int indicePuntero = padre.encontrarIndiceDePuntero(nodo);
@@ -683,8 +739,7 @@ public class ArbolBMas {
         }
     }
 
-
-
+    // Muestra el árbol B+ en la consola
     public void mostrarArbol() {
         if (estaVacio()) {
             System.out.println("El árbol está vacío.");
@@ -693,13 +748,12 @@ public class ArbolBMas {
         }
     }
 
+    // Muestra un nodo específico del árbol en la consola, con indentación para los niveles
     private void mostrarNodo(Nodo nodo, int nivel) {
-        if (nodo instanceof NodoHoja) {
-            NodoHoja hoja = (NodoHoja) nodo;
+        if (nodo instanceof NodoHoja hoja) {
             imprimirIndentacion(nivel);
             System.out.println("Hoja: " + Arrays.toString(hoja.diccionario));
-        } else if (nodo instanceof NodoInterno) {
-            NodoInterno interno = (NodoInterno) nodo;
+        } else if (nodo instanceof NodoInterno interno) {
             imprimirIndentacion(nivel);
             System.out.println("Interno: " + Arrays.toString(interno.claves));
             for (int i = 0; i < interno.getPunteros(); i++) {
@@ -707,9 +761,13 @@ public class ArbolBMas {
                     mostrarNodo(interno.punterosHijos[i], nivel + 1);
                 }
             }
+        } else if (this.raiz == null && this.primerHoja != null) {
+            imprimirIndentacion(nivel);
+            System.out.println("Hoja: " + Arrays.toString(this.primerHoja.diccionario));
         }
     }
 
+    // Imprime espacios de indentación para la visualización del árbol en la consola
     private void imprimirIndentacion(int nivel) {
         for (int i = 0; i < nivel; i++) {
             System.out.print("    ");

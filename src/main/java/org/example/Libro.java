@@ -1,13 +1,14 @@
 package org.example;
 
 public class Libro {
-    String isbn;
-    String nombre;
-    String autor;
-    String categoria;
-    double precio;
-    int cantidad;
+    String isbn; // ISBN del libro
+    String nombre; // Nombre del libro
+    String autor; // Autor del libro
+    String categoria; // Categoría del libro
+    double precio; // Precio del libro
+    int cantidad; // Cantidad disponible del libro
 
+    // Constructor que inicializa todos los atributos del libro
     public Libro(String isbn, String nombre, String autor, String categoria, double precio, int cantidad) {
         this.isbn = isbn;
         this.nombre = nombre;
@@ -64,6 +65,13 @@ public class Libro {
 
     public void setCantidad(int cantidad) {
         this.cantidad = cantidad;
+    }
+
+    // Método toString para representar el libro en formato JSON
+    @Override
+    public String toString() {
+        return String.format("{\"isbn\":\"%s\",\"name\":\"%s\",\"author\":\"%s\",\"category\":\"%s\",\"price\":\"%.2f\",\"quantity\":\"%d\"}",
+                isbn, nombre, autor, categoria, precio, cantidad);
     }
 }
 

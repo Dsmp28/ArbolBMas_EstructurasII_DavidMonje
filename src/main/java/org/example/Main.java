@@ -5,8 +5,9 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) {
         ArbolBMas arbol = new ArbolBMas(5);
-        arbol.procesarCsv("/Users/david/IdeaProjects/ArbolBMas_EstructurasII_DavidMonje/src/main/resources/datos_10000.csv");
-        /*arbol.insertar("01", new Libro("1", "Libro 1", "Autor 1", "Categoria 1", 100.0, 10));
+        //arbol.procesarCsv("/Users/david/IdeaProjects/ArbolBMas_EstructurasII_DavidMonje/src/main/resources/datos_10000.csv");
+        //arbol.mostrarArbol();
+        arbol.insertar("01", new Libro("1", "Libro 1", "Autor 1", "Categoria 1", 100.0, 10));
         arbol.insertar("02", new Libro("2", "Libro 2", "Autor 2", "Categoria 2", 200.0, 20));
         arbol.insertar("03", new Libro("3", "Libro 3", "Autor 3", "Categoria 3", 300.0, 30));
         arbol.insertar("04", new Libro("4", "Libro 4", "Autor 4", "Categoria 4", 400.0, 40));
@@ -30,10 +31,7 @@ public class Main {
         arbol.insertar("22", new Libro("22", "Libro 22", "Autor 22", "Categoria 22", 2200.0, 220));
         arbol.eliminar("07");
         arbol.eliminar("13");
-        arbol.eliminar("14");
-        arbol.eliminar("15");
-        arbol.eliminar("05");
-        arbol.eliminar("06");
-        arbol.mostrarArbol();*/
+
+        arbol.mostrarArbol();
     }
 }
