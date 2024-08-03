@@ -143,6 +143,22 @@ public class ArbolBMas {
             return dps[indice].valor;
         }
     }
+    public List<Libro> buscarPorNombre(String nombre) {
+        List<Libro> resultados = new ArrayList<>();
+        NodoHoja hojaActual = this.primerHoja;
+
+        while (hojaActual != null) {
+            for (int i = 0; i < hojaActual.numPares; i++) {
+                if (hojaActual.diccionario[i] != null && hojaActual.diccionario[i].valor.getNombre().equalsIgnoreCase(nombre)) {
+                    resultados.add(hojaActual.diccionario[i].valor);
+                }
+            }
+            hojaActual = hojaActual.hermanoDerecho;
+        }
+
+        return resultados;
+    }
+
 
     public void actualizar(String clave, Map<String, String> actualizaciones) {
         Libro libro = buscar(clave);
@@ -176,9 +192,13 @@ public class ArbolBMas {
                 } else if (linea.startsWith("SEARCH")) {
                     String json = linea.substring(linea.indexOf("{"));
                     Map<String, String> datos = parsearJson(json);
-                    Libro resultado = buscar(datos.get("isbn"));
+                    List<Libro> resultado = buscarPorNombre(datos.get("nombre"));
                     if (resultado != null) {
-                        System.out.println("Encontrado: " + resultado);
+                        System.out.println();
+                        System.out.println("Encontrado: ");
+                        for (Libro libro : resultado) {
+                            System.out.println(libro.nombre);
+                        }
                     } else {
                         System.out.println("No Encontrado");
                     }
