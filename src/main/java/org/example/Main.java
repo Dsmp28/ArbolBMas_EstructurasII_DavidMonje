@@ -46,7 +46,7 @@ public class Main {
         arbol.insertar("23", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
 
         arbol.mostrarArbol();
-
+        System.out.println("-------------------------------------------------");
 
         arbol.insertar("24", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
         arbol.insertar("25", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
@@ -55,6 +55,16 @@ public class Main {
         arbol.insertar("28", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
         arbol.insertar("29", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
         arbol.insertar("30", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+        arbol.insertar("30", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+        arbol.insertar("30", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+        arbol.insertar("28", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+        arbol.insertar("28", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+        arbol.insertar("28", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+        arbol.eliminar("16");
+        arbol.eliminar("24");
+        arbol.eliminar("20");
+
+        arbol.mostrarArbol();
 
     }
 }

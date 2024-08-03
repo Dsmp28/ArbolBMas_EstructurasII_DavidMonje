@@ -79,7 +79,7 @@ public class NodoInterno extends Nodo {
     }
 
     public boolean estaLleno() {
-        return this.grado == maxGrado + 1;
+        return getPunteros() == maxGrado + 1;
     }
 
     public void eliminarPuntero(int indice) {
