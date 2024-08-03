@@ -567,11 +567,6 @@ public class ArbolBMas {
                 hermanoDerecho.punterosHijos[0] = hermanoIzquierdo.punterosHijos[hermanoIzquierdo.getPunteros()];
             }
         }
-
-        // Si el nodo padre ya no necesita la clave que se movió al hijo, manejar deficiencia
-        if (hermanoIzquierdo.getClavesActuales() < hermanoIzquierdo.minGrado) {
-            manejarDeficiencia(hermanoIzquierdo);
-        }
     }
 
 
@@ -580,20 +575,20 @@ public class ArbolBMas {
     private void redistribuirDesdeDerechoInterno(NodoInterno nodo, NodoInterno hermanoDerecho) {
         int indicePadre = nodo.padre.encontrarIndiceDePuntero(nodo);
         nodo.claves[nodo.getPunteros()] = nodo.padre.claves[indicePadre];
+        hermanoDerecho.punterosHijos[0].padre = nodo;
         nodo.punterosHijos[nodo.getPunteros() + 1] = hermanoDerecho.punterosHijos[0];
+        nodo.reordenarClaves();
+        nodo.reordenarPunteros();
 
         // Actualizar el nodo padre
         nodo.padre.claves[indicePadre] = hermanoDerecho.claves[0];
+        nodo.padre.reordenarClaves();
 
         // Eliminar la clave y puntero en el hermano derecho
-        hermanoDerecho.eliminarPuntero(0);
+        hermanoDerecho.claves[0] = null;
+        hermanoDerecho.punterosHijos[0] = null;
         hermanoDerecho.reordenarClaves();
         hermanoDerecho.reordenarPunteros();
-
-        // Si la clave en el nodo padre es la misma que la que se movió, eliminarla
-        if (hermanoDerecho.getClavesActuales() < hermanoDerecho.minGrado) {
-            manejarDeficiencia(hermanoDerecho);
-        }
     }
 
 

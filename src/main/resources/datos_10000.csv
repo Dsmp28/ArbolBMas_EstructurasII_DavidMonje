@@ -1,4 +1,5 @@
 INSERT; {"isbn":"3061486558","nombre":"Cien Años de Soledad","autor":"Gabriel Garcia Marquez","categoria":"Ficción","precio":"20.00","cantidad":"10"}
+PATCH; {"isbn":"3061486558","cantidad":"15"}
 SEARCH; {"nombre":"El Principito"}
 DELETE; {"isbn":"3049613733"}
 PATCH; {"isbn":"2893480171","cantidad":"10"}

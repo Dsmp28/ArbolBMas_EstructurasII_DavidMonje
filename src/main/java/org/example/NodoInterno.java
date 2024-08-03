@@ -71,7 +71,7 @@ public class NodoInterno extends Nodo {
     }
 
     public boolean esPrestable() {
-        return this.grado > this.minGrado;
+        return getPunteros() > this.minGrado;
     }
 
     public boolean esFusionable() {
