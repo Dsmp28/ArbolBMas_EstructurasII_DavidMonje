@@ -34,9 +34,27 @@ public class Main {
 
         arbol.eliminar("14");
         arbol.eliminar("15");
+        arbol.eliminar("11");
 
-        //arbol.insertar("21", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+        arbol.insertar("21", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+        arbol.insertar("22", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+
+        arbol.eliminar("12");
+        arbol.eliminar("05");
+        arbol.eliminar("07");
+        arbol.eliminar("13");
+        arbol.insertar("23", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
 
         arbol.mostrarArbol();
+
+
+        arbol.insertar("24", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+        arbol.insertar("25", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+        arbol.insertar("26", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+        arbol.insertar("27", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+        arbol.insertar("28", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+        arbol.insertar("29", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+        arbol.insertar("30", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
+
     }
 }

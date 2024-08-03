@@ -108,6 +108,7 @@ public class ArbolBMas {
                 } else if (this.raiz == null && this.primerHoja.numPares == 0) {
                     this.primerHoja = null;
                 } else {
+                    hoja.reordenar();
                     ordenarDiccionario(hoja.diccionario);
                     if (hoja.padre != null) {
                         while (nodoInterno != null) {
@@ -590,6 +591,7 @@ public class ArbolBMas {
         // Mover las claves y punteros del nodo al hermano
         for (int i = 0; i < nodo.getPunteros(); i++) {
             hermano.claves[hermano.getPunteros()] = nodo.claves[i];
+            nodo.punterosHijos[i].padre = hermano;
             hermano.punterosHijos[hermano.getPunteros()] = nodo.punterosHijos[i];
             hermano.grado++;
         }
