@@ -27,7 +27,15 @@ public class Main {
         arbol.mostrarArbol();
         System.out.println("-------------------------------------------------");
 
-        arbol.eliminar("01");
+        arbol.eliminar("09");
+        arbol.eliminar("10");
+        arbol.mostrarArbol();
+        System.out.println("-------------------------------------------------");
+
+        arbol.eliminar("14");
+        arbol.eliminar("15");
+
+        //arbol.insertar("21", new Libro("11", "Libro 11", "Autor 11", "Categoria 11", 1100.0, 110));
 
         arbol.mostrarArbol();
     }

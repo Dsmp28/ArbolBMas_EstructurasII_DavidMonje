@@ -1,6 +1,7 @@
 package org.example;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 public class NodoHoja extends Nodo {
     int maxNumPares;
@@ -42,6 +43,20 @@ public class NodoHoja extends Nodo {
         numPares--;
     }
 
+    public void reordenar() {
+        for (int i = 0; i < diccionario.length; i++) {
+            if (diccionario[i] == null) {
+                for (int j = i + 1; j < diccionario.length; j++) {
+                    if (diccionario[j] != null) {
+                        diccionario[i] = diccionario[j];
+                        diccionario[j] = null;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     public boolean estaLleno() {
         return numPares == maxNumPares;
     }
@@ -54,8 +69,8 @@ public class NodoHoja extends Nodo {
         return numPares > minNumPares;
     }
 
-    public boolean esFusionable() {
-        return numPares == minNumPares;
+    public boolean esFusionable(int clave) {
+        return numPares + clave <= maxNumPares;
     }
 
     private int busquedaLinealNula(ParDiccionario[] dps) {
