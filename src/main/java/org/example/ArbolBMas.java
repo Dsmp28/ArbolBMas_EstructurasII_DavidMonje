@@ -82,18 +82,13 @@ public class ArbolBMas {
 
     public void eliminar(String clave) {
         // Verificar si el árbol está vacío
-        if (estaVacio()) {
-            System.err.println("Eliminación Inválida: El árbol B+ está actualmente vacío.");
-        } else {
+        if (!estaVacio()) {
             // Encontrar la hoja que contiene la clave a eliminar
             NodoHoja hoja = (this.raiz == null) ? this.primerHoja : encontrarNodoHoja(clave);
             // Buscar el índice del par clave-valor en la hoja
             int indicePar = busquedaBinaria(hoja.diccionario, hoja.numPares, clave);
 
-            // Si la clave no se encuentra en la hoja, imprimir un mensaje de error
-            if (indicePar < 0) {
-                System.err.println("Eliminación Inválida: No se pudo encontrar la clave.");
-            } else {
+            if (indicePar >= 0) {
                 // Eliminar el par clave-valor de la hoja y reordenar
                 hoja.eliminar(indicePar);
                 hoja.reordenar();
@@ -108,7 +103,7 @@ public class ArbolBMas {
                 }
 
                 // Si la raíz contiene la clave eliminada, actualizar la clave en la raíz
-                if (this.raiz != null && Arrays.asList(this.raiz.claves).contains(clave)) {
+                if (this.raiz != null && Arrays.asList(this.raiz.claves).contains(clave) && nodoInterno != this.raiz) {
                     int indiceRaiz = Arrays.asList(this.raiz.claves).indexOf(clave);
 
                     // Buscar el valor más pequeño en el subárbol derecho
@@ -196,17 +191,18 @@ public class ArbolBMas {
 
         //Si el libro no es nulo, actualiza los valores
         if (libro != null) {
-            if (actualizaciones.containsKey("nombre")) libro.setNombre(actualizaciones.get("nombre"));
-            if (actualizaciones.containsKey("autor")) libro.setAutor(actualizaciones.get("autor"));
-            if (actualizaciones.containsKey("categoria")) libro.setCategoria(actualizaciones.get("categoria"));
-            if (actualizaciones.containsKey("precio")) libro.setPrecio(Double.parseDouble(actualizaciones.get("precio")));
-            if (actualizaciones.containsKey("cantidad")) libro.setCantidad(Integer.parseInt(actualizaciones.get("cantidad")));
+            if (actualizaciones.containsKey("name")) libro.setNombre(actualizaciones.get("name"));
+            if (actualizaciones.containsKey("author")) libro.setAutor(actualizaciones.get("author"));
+            if (actualizaciones.containsKey("category")) libro.setCategoria(actualizaciones.get("category"));
+            if (actualizaciones.containsKey("price")) libro.setPrecio(Double.parseDouble(actualizaciones.get("price")));
+            if (actualizaciones.containsKey("quantity")) libro.setCantidad(Integer.parseInt(actualizaciones.get("quantity")));
         }
     }
 
     // Procesa un archivo CSV que contiene comandos como INSERT, DELETE, PATCH y SEARCH
     public void procesarCsv(String nombreArchivo) {
         try (BufferedReader br = new BufferedReader(new FileReader(nombreArchivo))) {
+            List<Libro> resultadosTotales = new ArrayList<>();
             String linea;
             // Leer cada línea del archivo CSV
             while ((linea = br.readLine()) != null) {
@@ -231,51 +227,88 @@ public class ArbolBMas {
                 } else if (linea.startsWith("SEARCH")) {
                     String json = linea.substring(linea.indexOf("{"));
                     Map<String, String> datos = parsearJson(json);
-                    List<Libro> resultado = buscarPorNombre(datos.get("nombre"));
+                    List<Libro> resultado = buscarPorNombre(datos.get("name"));
                     // Imprimir los resultados de la búsqueda
                     if (resultado != null) {
-                        System.out.println();
-                        System.out.println("Encontrado: ");
-                        for (Libro libro : resultado) {
-                            System.out.println(libro);
-                        }
-                    } else {
-                        System.out.println("No Encontrado");
+                        resultadosTotales.addAll(resultado);
                     }
                 }
             }
+            System.out.println("Procesamiento del archivo CSV completado con exito.\n");
+
+            if (!resultadosTotales.isEmpty()) {
+                System.out.println("Resultados de la busqueda:");
+                for (Libro libro : resultadosTotales) {
+                    System.out.println(libro);
+                }
+            } else {
+                System.out.println("No se encontraron resultados.");
+            }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error al leer el archivo CSV: " + e.getMessage());
         }
     }
 
-    //Parsea el JSON y crea un objeto Libro
     private Libro parsearLibroJson(String json) {
         Map<String, String> datos = parsearJson(json);
-        return new Libro(
-                datos.get("isbn"),
-                datos.get("nombre"),
-                datos.get("autor"),
-                datos.get("categoria"),
-                Double.parseDouble(datos.get("precio")),
-                Integer.parseInt(datos.get("cantidad"))
-        );
+
+        // Asegurarse de que todas las categorías estén presentes, si no, asignarlas como null
+        String isbn = datos.getOrDefault("isbn", null);
+        String nombre = datos.getOrDefault("name", null);
+        String autor = datos.getOrDefault("author", null);
+        String categoria = datos.getOrDefault("category", null);
+        String precioStr = datos.getOrDefault("price", null);
+        String cantidadStr = datos.getOrDefault("quantity", null);
+
+        Double precio = precioStr != null ? Double.parseDouble(precioStr) : null;
+        Integer cantidad = cantidadStr != null ? Integer.parseInt(cantidadStr) : null;
+
+        return new Libro(isbn, nombre, autor, categoria, precio, cantidad);
     }
 
-    //Parsea el JSON y crea un mapa de clave-valor
+
+    // Parsear el JSON y crear un mapa de clave-valor
     private Map<String, String> parsearJson(String json) {
-        // Eliminar los caracteres no deseados del JSON
-        json = json.replaceAll("[{}\"]", "");
-        // Separar los pares clave-valor
-        String[] pares = json.split(",");
+        // Remover las llaves y comillas externas
+        json = json.substring(1, json.length() - 1);
+
         Map<String, String> mapa = new HashMap<>();
-        // Crear un mapa con los pares clave-valor
-        for (String par : pares) {
-            String[] claveValor = par.split(":");
-            mapa.put(claveValor[0].trim(), claveValor[1].trim());
+        StringBuilder claveBuilder = new StringBuilder();
+        StringBuilder valorBuilder = new StringBuilder();
+        boolean dentroDeValor = false;
+        boolean esClave = true;
+
+        for (int i = 0; i < json.length(); i++) {
+            char c = json.charAt(i);
+
+            if (c == '\"') {
+                dentroDeValor = !dentroDeValor;
+            } else if (c == ':' && esClave) {
+                esClave = false;
+            } else if (c == ',' && !dentroDeValor) {
+                // Agregar el par clave-valor al mapa
+                mapa.put(claveBuilder.toString().trim(), valorBuilder.toString().trim());
+                claveBuilder.setLength(0); // Reiniciar el StringBuilder de la clave
+                valorBuilder.setLength(0); // Reiniciar el StringBuilder del valor
+                esClave = true;
+            } else {
+                if (esClave) {
+                    claveBuilder.append(c);
+                } else {
+                    valorBuilder.append(c);
+                }
+            }
         }
+
+        // Agregar el último par clave-valor
+        if (claveBuilder.length() > 0 && valorBuilder.length() > 0) {
+            mapa.put(claveBuilder.toString().trim(), valorBuilder.toString().trim());
+        }
+
         return mapa;
     }
+
+
 
     // Encontrar el nodo hoja que debe contener la clave
     private NodoHoja encontrarNodoHoja(String clave) {
@@ -487,12 +520,6 @@ public class ArbolBMas {
             } else {
                 this.raiz = null;
                 this.primerHoja = null;
-            }
-        } else {
-            // Ajustar la raíz si la hoja deficiente contiene la clave mínima del subárbol derecho
-            if (this.raiz != null && Arrays.asList(this.raiz.claves).contains(hoja.diccionario[0].clave)) {
-                int indiceRaiz = Arrays.asList(this.raiz.claves).indexOf(hoja.diccionario[0].clave);
-                this.raiz.claves[indiceRaiz] = hoja.diccionario[0].clave;
             }
         }
     }
@@ -733,7 +760,7 @@ public class ArbolBMas {
         // Manejar deficiencia en el nodo padre si es necesario
         if (padre.estaDeficiente() && padre.padre != null) {
             manejarDeficiencia(padre);
-        } else if (padre.estaDeficiente() && padre.padre == null) {
+        } else if (padre != raiz && padre.estaDeficiente() && padre.padre == null) {
             this.raiz = (NodoInterno) padre.punterosHijos[0];
             this.raiz.padre = null;
         }
@@ -745,6 +772,33 @@ public class ArbolBMas {
             System.out.println("El árbol está vacío.");
         } else {
             mostrarNodo(raiz, 0);
+        }
+    }
+
+    public boolean menu() {
+        try {
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("");
+            System.out.println("1. Importar archivo CSV ");
+            System.out.println("2. Salir");
+            System.out.print("Ingrese la opción deseada (Ej: 1): ");
+            int opcion = scanner.nextInt();
+            switch (opcion) {
+                case 1:
+                    System.out.println("");
+                    System.out.print("Ingrese la direccion del archivo CSV: ");
+                    String nombreArchivo = scanner.next();
+                    procesarCsv(nombreArchivo);
+                    return true;
+                case 2:
+                    return false;
+                default:
+                    System.out.println("Opción inválida. Inténtelo de nuevo.");
+                    return true;
+            }
+        } catch (Exception e) {
+            System.out.println("Ocurrio un error, por favor vuelva a intentarlo ");
+            return true;
         }
     }
 

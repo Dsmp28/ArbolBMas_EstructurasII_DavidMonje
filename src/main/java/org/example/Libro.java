@@ -70,6 +70,10 @@ public class Libro {
     // Método toString para representar el libro en formato JSON
     @Override
     public String toString() {
+        if (categoria == null) {
+            return String.format("{\"isbn\":\"%s\",\"name\":\"%s\",\"author\":\"%s\",\"price\":\"%.2f\",\"quantity\":\"%d\"}",
+                    isbn, nombre, autor, precio, cantidad);
+        }
         return String.format("{\"isbn\":\"%s\",\"name\":\"%s\",\"author\":\"%s\",\"category\":\"%s\",\"price\":\"%.2f\",\"quantity\":\"%d\"}",
                 isbn, nombre, autor, categoria, precio, cantidad);
     }
