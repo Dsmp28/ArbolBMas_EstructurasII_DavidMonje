@@ -4,7 +4,7 @@ import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        ArbolBMas arbol = new ArbolBMas(5);
+        ArbolBMas arbol = new ArbolBMas(30);
         boolean continuar = true;
         while (continuar) {
             continuar = arbol.menu();

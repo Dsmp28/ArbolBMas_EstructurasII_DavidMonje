@@ -6,12 +6,14 @@ import java.util.*;
 public class ArbolBMas {
     int m; //Grado del arbol
     NodoInterno raiz; //Nodo raiz del arbol
-    NodoHoja primerHoja; //Primera hoja del arbol
+    NodoHoja primerHoja;
+    Map<String, String> nombreIsbnMap;//Primera hoja del arbol
 
     //Constructor
     public ArbolBMas(int m) {
         this.m = m;
         this.raiz = null;
+        nombreIsbnMap = new HashMap<>();
     }
 
     public void insertar(String clave, Libro valor) {
@@ -78,6 +80,7 @@ public class ArbolBMas {
                 }
             }
         }
+        nombreIsbnMap.put(valor.getNombre(), clave);
     }
 
     public void eliminar(String clave) {
@@ -90,6 +93,7 @@ public class ArbolBMas {
 
             if (indicePar >= 0) {
                 // Eliminar el par clave-valor de la hoja y reordenar
+                Libro libro = hoja.diccionario[indicePar].valor;
                 hoja.eliminar(indicePar);
                 hoja.reordenar();
 
@@ -138,6 +142,7 @@ public class ArbolBMas {
                         }
                     }
                 }
+                nombreIsbnMap.remove(libro.getNombre());
             }
         }
     }
@@ -170,17 +175,14 @@ public class ArbolBMas {
     //Se crea una lista con todos los resultados
     public List<Libro> buscarPorNombre(String nombre) {
         List<Libro> resultados = new ArrayList<>();
-        NodoHoja hojaActual = this.primerHoja;
-
-        while (hojaActual != null) {
-            for (int i = 0; i < hojaActual.numPares; i++) {
-                if (hojaActual.diccionario[i] != null && hojaActual.diccionario[i].valor.getNombre().equalsIgnoreCase(nombre)) {
-                    resultados.add(hojaActual.diccionario[i].valor);
-                }
+        String isbn = nombreIsbnMap.get(nombre);
+        if (isbn != null) {
+            // Use the ISBN to find the book in the B+ tree
+            Libro libro = buscar(isbn);
+            if (libro != null) {
+                resultados.add(libro);
             }
-            hojaActual = hojaActual.hermanoDerecho;
         }
-
         return resultados;
     }
 
@@ -191,14 +193,20 @@ public class ArbolBMas {
 
         //Si el libro no es nulo, actualiza los valores
         if (libro != null) {
+            String nombreAnterior = libro.getNombre();
             if (actualizaciones.containsKey("name")) libro.setNombre(actualizaciones.get("name"));
             if (actualizaciones.containsKey("author")) libro.setAutor(actualizaciones.get("author"));
             if (actualizaciones.containsKey("category")) libro.setCategoria(actualizaciones.get("category"));
-            if (actualizaciones.containsKey("price")) libro.setPrecio(Double.parseDouble(actualizaciones.get("price")));
+            if (actualizaciones.containsKey("price")) libro.setPrecio(actualizaciones.get("price"));
             if (actualizaciones.containsKey("quantity")) libro.setCantidad(Integer.parseInt(actualizaciones.get("quantity")));
+
+            // Update HashMap if name is changed
+            if (actualizaciones.containsKey("name")) {
+                nombreIsbnMap.remove(nombreAnterior);
+                nombreIsbnMap.put(libro.getNombre(), clave);
+            }
         }
     }
-
     // Procesa un archivo CSV que contiene comandos como INSERT, DELETE, PATCH y SEARCH
     public void procesarCsv(String nombreArchivo) {
         try (BufferedReader br = new BufferedReader(new FileReader(nombreArchivo))) {
@@ -208,14 +216,11 @@ public class ArbolBMas {
             while ((linea = br.readLine()) != null) {
                 linea = linea.trim();
                 // Procesar la línea según el comando (INSERT, DELETE, PATCH, SEARCH)
-
                 if (linea.startsWith("INSERT")) {
-                    // Parsear el JSON y crear un objeto Libro
                     String json = linea.substring(linea.indexOf("{"));
                     Libro libro = parsearLibroJson(json);
-                    // Insertar el libro en el árbol B+
                     insertar(libro.getIsbn(), libro);
-                } else if (linea.startsWith("DELETE")) { //Mismo proceso para todas las funciones
+                } else if (linea.startsWith("DELETE")) {
                     String json = linea.substring(linea.indexOf("{"));
                     Map<String, String> datos = parsearJson(json);
                     eliminar(datos.get("isbn"));
@@ -228,24 +233,32 @@ public class ArbolBMas {
                     String json = linea.substring(linea.indexOf("{"));
                     Map<String, String> datos = parsearJson(json);
                     List<Libro> resultado = buscarPorNombre(datos.get("name"));
-                    // Imprimir los resultados de la búsqueda
                     if (resultado != null) {
                         resultadosTotales.addAll(resultado);
                     }
                 }
             }
+            escribirResultados(resultadosTotales);
             System.out.println("Procesamiento del archivo CSV completado con exito.\n");
-
-            if (!resultadosTotales.isEmpty()) {
-                System.out.println("Resultados de la busqueda:");
-                for (Libro libro : resultadosTotales) {
-                    System.out.println(libro);
-                }
-            } else {
-                System.out.println("No se encontraron resultados.");
-            }
         } catch (IOException e) {
             System.out.println("Error al leer el archivo CSV: " + e.getMessage());
+        }
+    }
+
+    private void escribirResultados(List<Libro> resultados) {
+        File file = new File("src/main/resources/resultados.txt");
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            int contador = 0;
+            for (Libro libro : resultados) {
+                writer.write(libro.toString());
+                writer.newLine();
+                contador++;
+            }
+            if (contador > 0){
+                System.out.println("Resultados escritos en: " + file.getAbsolutePath());
+            }
+        } catch (IOException e) {
+            System.out.println("Error al escribir los resultados: " + e.getMessage());
         }
     }
 
@@ -257,10 +270,9 @@ public class ArbolBMas {
         String nombre = datos.getOrDefault("name", null);
         String autor = datos.getOrDefault("author", null);
         String categoria = datos.getOrDefault("category", null);
-        String precioStr = datos.getOrDefault("price", null);
+        String precio = datos.getOrDefault("price", null);
         String cantidadStr = datos.getOrDefault("quantity", null);
 
-        Double precio = precioStr != null ? Double.parseDouble(precioStr) : null;
         Integer cantidad = cantidadStr != null ? Integer.parseInt(cantidadStr) : null;
 
         return new Libro(isbn, nombre, autor, categoria, precio, cantidad);

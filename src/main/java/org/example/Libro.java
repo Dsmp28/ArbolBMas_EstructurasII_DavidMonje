@@ -5,11 +5,11 @@ public class Libro {
     String nombre; // Nombre del libro
     String autor; // Autor del libro
     String categoria; // Categoría del libro
-    double precio; // Precio del libro
+    String precio; // Precio del libro
     int cantidad; // Cantidad disponible del libro
 
     // Constructor que inicializa todos los atributos del libro
-    public Libro(String isbn, String nombre, String autor, String categoria, double precio, int cantidad) {
+    public Libro(String isbn, String nombre, String autor, String categoria, String precio, int cantidad) {
         this.isbn = isbn;
         this.nombre = nombre;
         this.autor = autor;
@@ -51,11 +51,11 @@ public class Libro {
         this.categoria = categoria;
     }
 
-    public double getPrecio() {
+    public String getPrecio() {
         return precio;
     }
 
-    public void setPrecio(double precio) {
+    public void setPrecio(String precio) {
         this.precio = precio;
     }
 
@@ -71,10 +71,10 @@ public class Libro {
     @Override
     public String toString() {
         if (categoria == null) {
-            return String.format("{\"isbn\":\"%s\",\"name\":\"%s\",\"author\":\"%s\",\"price\":\"%.2f\",\"quantity\":\"%d\"}",
+            return String.format("{\"isbn\":\"%s\",\"name\":\"%s\",\"author\":\"%s\",\"price\":\"%s\",\"quantity\":\"%d\"}",
                     isbn, nombre, autor, precio, cantidad);
         }
-        return String.format("{\"isbn\":\"%s\",\"name\":\"%s\",\"author\":\"%s\",\"category\":\"%s\",\"price\":\"%.2f\",\"quantity\":\"%d\"}",
+        return String.format("{\"isbn\":\"%s\",\"name\":\"%s\",\"author\":\"%s\",\"category\":\"%s\",\"price\":\"%s\",\"quantity\":\"%d\"}",
                 isbn, nombre, autor, categoria, precio, cantidad);
     }
 }
